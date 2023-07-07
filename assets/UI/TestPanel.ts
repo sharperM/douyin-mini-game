@@ -1,4 +1,4 @@
-import { _decorator, Button, Component, Node, Prefab, resources, TTFFont } from 'cc';
+import { _decorator, Button, Component, instantiate, Node, Prefab, resources, TTFFont } from 'cc';
 const { ccclass, property } = _decorator;
 
 @ccclass('TestPanel')
@@ -18,18 +18,30 @@ export class TestPanel extends Component {
         {
             this.douyingTestPanel.node.active = false;
         }
+        else
+        {
+            console.log("tt",tt);
+        }
         if(typeof wx == 'undefined')
         {
             this.weixinTestPanel.node.active = false;
         }
+        else
+        {
+            console.log("wx",wx);
+        }
         this.douyingTestPanel.node.on(Button.EventType.CLICK,()=>{
             resources.load("UI/douyinTestPanel",Prefab,function (err, prefab)  {
-                this.node.addChild(prefab.instantiate());
+                if (err) {
+                    console.error(err);
+                    return;
+                }
+                this.node.addChild(instantiate(prefab));
         }.bind(this));
         },this);
 
         this.weixinTestPanel.node.on(Button.EventType.CLICK,()=>{
-            cc.director.loadScene("weixinTestScene");
+            // cc.director.loadScene("weixinTestScene");
         },this);
 
 
