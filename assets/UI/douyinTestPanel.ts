@@ -88,6 +88,10 @@ export class douyinTestPanel extends Component {
 
     start() {
 
+        this.btnCallBack.push({name:"关闭",func:()=>{
+            this.node.active = false;
+            this.node.destroy();
+        }});
         this.btnCallBack.push({name:"login",func:()=>{
             if (typeof tt !== 'undefined')
             {
@@ -393,7 +397,7 @@ export class douyinTestPanel extends Component {
         // this.btnCallBack.push({name:"shareWithTicket",func:this.shareWithTicket});
 
 
-        this.btnCallBack.push({name:"设置排名",func:()=>{
+        this.btnCallBack.push({name:"设置好友排名",func:()=>{
             if (typeof tt !== 'undefined')
             {
                 tt.setImRankData({
@@ -415,7 +419,7 @@ export class douyinTestPanel extends Component {
 
 
 
-        this.btnCallBack.push({name:"获取排名",func:()=>{
+        this.btnCallBack.push({name:"获取好友排名",func:()=>{
             if (typeof tt !== 'undefined')
             {
                 tt.getImRankList({
@@ -441,24 +445,23 @@ export class douyinTestPanel extends Component {
         this.btnCallBack.push({name:"获取排名数据",func:()=>{
             if (typeof tt !== 'undefined')
             {
-                this.btnCallBack.push({name:"获取排名",func:()=>{
-                    if (typeof tt !== 'undefined')
-                    {
-                        tt.getImRankList({
-                            relationType: "default", //好友榜、总榜都展示
-                            dataType: 1, //只圈选type为枚举类型的数据进行排序
-                            rankType: "day", //每天凌晨0点更新，只对当天0点到现在写入的数据进行排序
-                            suffix: "", //为空或不填，一般枚举类型不需要填后缀
-                            rankTitle: "rankTitle", //标题
-                            success(res) {
-                              console.log(`getImRankData success res: ${res}`);
-                            },
-                            fail(res) {
-                              console.log(`getImRankData fail res: ${res.errMsg}`);
-                            },
-                          });
-                    }
-                }});
+                tt.getOpenDataContext().postMessage({
+                    command: "getImRankData",
+                    arg: {
+                        relationType: "friend",
+                        dataType: 0,
+                        rankType: "month",
+                        pageNum: 1,
+                        pageSize: 40,
+                        success(res) {
+                          console.log(`getImRankData success res: ${res}`);
+                        },
+                        fail(res) {
+                          console.log(`getImRankData fail res: ${res.errMsg}`);
+                        },
+                      }
+                    });
+        
             }
         }});
 
@@ -470,24 +473,29 @@ export class douyinTestPanel extends Component {
         this.btnCallBack.push({name:"写入排行榜数据",func:()=>{
             if (typeof tt !== 'undefined')
             {
-                tt.setImRankDataInOpenContext({
-                    dataType: 0, //成绩为数字类型
-                    value: "999999", //该用户得了999999分
-                    priority: 0, //dataType为数字类型，不需要权重，直接传0
-                    extra: "extra",
-                    success(res) {
-                      console.log(`setImRankDataInOpenContext success res: ${res}`);
-                    },
-                    fail(res) {
-                      console.log(`setImRankDataInOpenContext fail res: ${res.errMsg}`);
-                    },
-                  });
+
+                tt.getOpenDataContext().postMessage({
+                    command: "setImRankDataInOpenContext",
+                    arg: {
+                        dataType: 0, //成绩为数字类型
+                        value: "999999", //该用户得了999999分
+                        priority: 0, //dataType为数字类型，不需要权重，直接传0
+                        extra: "extra",
+                        success(res) {
+                          console.log(`setImRankDataInOpenContext success res: ${res}`);
+                        },
+                        fail(res) {
+                          console.log(`setImRankDataInOpenContext fail res: ${res.errMsg}`);
+                        },
+                      }
+                    });
+
             }
         }});
 
 
 
-        this.btnCallBack.push({name:"写入排行榜数据",func:()=>{
+        this.btnCallBack.push({name:"上报分析",func:()=>{
             if (typeof tt !== 'undefined')
             {
                 tt.reportAnalytics("clickBanner", {
@@ -514,7 +522,179 @@ export class douyinTestPanel extends Component {
         }});
 
 
+        this.btnCallBack.push({name:"获取开放数据域",func:()=>{
+            if (typeof tt !== 'undefined')
+            {
+                const openCtx = tt.getOpenDataContext();
+                openCtx.postMessage({
+                  company: "bytedance",
+                });
+            }
+        }});
 
+
+        this.btnCallBack.push({name:"测试开放数据域",func:()=>{
+            if (typeof tt !== 'undefined')
+            {
+                const openCtx = tt.getOpenDataContext();
+                openCtx.postMessage({
+                  command: "render",
+                });
+                const openDataContext = tt.getOpenDataContext();
+                const sharedCanvas = openDataContext.canvas;
+                
+                const canvas = tt.createCanvas();
+                const context = canvas.getContext("2d");
+                context.drawImage(sharedCanvas, 0, 0);
+            }
+        }});
+
+
+        this.btnCallBack.push({name:"获取托管数据friend",func:()=>{
+            if (typeof tt !== 'undefined')
+            {
+                // 获取关系类型为friend的用户托管数据（非排行榜）
+
+                tt.getOpenDataContext().postMessage({
+                    command: "getCloudStorageByRelation",
+                    arg: {
+                        type: "friend",
+                        keyList: ["score"],
+                        success: (res) => {
+                        console.log("调用成功");
+                        console.log(res.data);
+                        },
+                        fail: (res) => {
+                        console.log("调用失败");
+                        },
+                        complete: (res) => {
+                        console.log("调用完成");
+                        },
+                    }
+                    });
+
+            }
+        }});
+
+        this.btnCallBack.push({name:"获取托管数据group",func:()=>{
+            if (typeof tt !== 'undefined')
+            {
+                // 获取关系类型为group的挑战排行榜数据
+
+                tt.getOpenDataContext().postMessage({
+                    command: "getCloudStorageByRelation",
+                    arg: {
+                        type: "group",
+                        keyList: ["ranlList"],
+                        extra: {
+                          sortKey: "ranlList", // 指定的key需要在后台配置过
+                          groupId: "test_group", // 指定要获取的用户所属分组
+                        },
+                        success: (res) => {
+                          console.log("调用成功");
+                          console.log(res.data);
+                        },
+                        fail: (res) => {
+                          console.log("调用失败");
+                        },
+                        complete: (res) => {
+                          console.log("调用完成");
+                        },
+                      }
+                    });
+            }
+        }});
+
+        this.btnCallBack.push({name:"用户存储写入",func:()=>{
+            if (typeof tt !== 'undefined')
+            {
+
+                tt.getOpenDataContext().postMessage({
+                    command: "setUserCloudStorage",
+                    arg: {
+                        KVDataList: [
+                          {
+                            key: "ranlList",
+                            value: JSON.stringify({
+                              ttgame: {
+                                score: 100,
+                                update_time: 1557813466,
+                              },
+                              progress: 10,
+                            }),
+                          },
+                        ],
+                        success: (res) => {
+                          console.log("调用成功");
+                          console.log(res.errMsg);
+                        },
+                        fail: (res) => {
+                          console.log("调用失败");
+                        },
+                        complete: (res) => {
+                          console.log("调用完成");
+                        },
+                      }
+                    });
+            }
+        }});
+
+        this.btnCallBack.push({name:"用户存储读取",func:()=>{
+            if (typeof tt !== 'undefined')
+            {
+
+                tt.getOpenDataContext().postMessage({
+                    command: "getUserCloudStorage",
+                    arg: {
+                        keyList: ["xxx"], // 要获取的 key 列表
+                        success: (res) => {
+                          console.log("调用成功");
+                          console.log(res.KVDataList);
+                        },
+                        fail: (res) => {
+                          console.log("调用失败");
+                        },
+                        complete: (res) => {
+                          console.log("调用完成");
+                        },
+                      }
+                    });
+            }
+        }});
+
+        this.btnCallBack.push({name:"用户存储删除",func:()=>{
+            if (typeof tt !== 'undefined')
+            {
+
+                
+                tt.getOpenDataContext().postMessage({
+                    command: "removeUserCloudStorage",
+                    arg: {
+                        keyList: ["xxx"], // 要删除的 key 列表,
+                        success: (res) => {
+                          console.log("调用成功");
+                          console.log(res.errMsg);
+                        },
+                        fail: (res) => {
+                          console.log("调用失败");
+                        },
+                        complete: (res) => {
+                          console.log("调用完成");
+                        },
+                      }
+                    });
+            }
+        }});
+
+
+        this.btnCallBack.push({name:"设置数据分组",func:()=>{
+            if (typeof tt !== 'undefined')
+            {
+                tt.setUserGroup({
+                    groupId: "test_group",
+                  });
+            }
+        }});
 
 
 
